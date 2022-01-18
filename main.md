@@ -215,3 +215,82 @@ stdenv.mkDerivation {
 
 スライド 👇
 [`https://coord-e.github.io/slide-specialseminar21-reimpl-functional-package-manager/`](https://coord-e.github.io/slide-specialseminar21-reimpl-functional-package-manager/)
+
+---
+
+<!-- _class: lead -->
+
+# おまけ
+
+---
+
+# がんばり: 豊富な言語機能
+
+```nix
+let
+  sources = filter (i: typeOf i == "path") buildInputs;
+  dependencies = filter (i: typeOf i == "derivation") buildInputs;
+in derivation {
+  inherit sources dependencies;
+  envs = mapValues toString envs
+    ++ mapMembers (n: "STDENV_OVERRIDE_#{n}") override
+    ++ {
+      STDENV_PHASES = phases
+        |> filter (x: not (elem x disablePhases))
+        |> join ":";
+    };
+}
+```
+
+---
+
+# がんばり: 高機能なエラーレポーティング
+
+<script id="asciicast-SyD4qxL2dZBwgybrPJYoylhOn" src="https://asciinema.org/a/SyD4qxL2dZBwgybrPJYoylhOn.js" async></script>
+
+---
+
+# 容易なビルトイン定義
+
+```rust
+#[derive(Debug, FromValue)]
+pub struct Arg {
+    object: Object,
+    member: String,
+}
+
+pub async fn call(arg: Arg) -> BuiltinResult<Value, Infallible> {
+    let mut object = arg.object;
+    object.remove_member(arg.member);
+    Ok(Value::Object(object))
+}
+```
+
+---
+
+# 隔離されたビルド
+
+![w:1200px h:auto](./asset/build.svg)
+
+---
+
+# これまでのあらすじ (1/2)
+
+- ディストリビューションとパッケージマネージャー
+  - システムに存在するライブラリのセットをディストリビューションとして固定し、その環境向けにビルドされたものなら動作できるようにする
+  - パッケージとしてソフトウェアの依存関係を記述し、デフォルトで存在しないライブラリを利用した際も必ず必要なものが存在しているようにする
+  - 各ディストリビューションの**環境への固定**
+- 30 億のデバイスで動く Java
+  - 共通の VM を用意することで、ビルド結果を共有できるように
+  - JVM という**環境への固定**
+
+---
+
+# これまでのあらすじ (2/2)
+
+- Docker に代表されるコンテナ技術
+  - 環境を閉じ込めて実行する手段を用意し、実行環境とビルド結果を共有できるように
+  - コンテナイメージでファイルツリーごと**環境を配布**
+- musl などによって実現される全体の静的リンク
+  - 動的リンクによる実行環境への依存を排除することで、ビルド結果を共有できるように
+  - バイナリに必要なものをすべて詰めることで**環境も一緒に配布**
