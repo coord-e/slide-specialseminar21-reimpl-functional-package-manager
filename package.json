@@ -10,7 +10,7 @@
     "fix:textlint": "textlint --fix main.md",
     "fix:prettier": "prettier --write .",
     "fix": "run-s fix:prettier fix:textlint",
-    "build": "marp --theme theme.css main.md -o dist/index.html --html",
+    "build": "marp --theme theme.css main.md -o dist/index.html --html && cpy asset dist/asset",
     "start": "marp --theme theme.css --server --html --allow-local-files ."
   },
   "repository": {
