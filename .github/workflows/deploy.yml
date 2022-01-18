@@ -1,0 +1,24 @@
+on:
+  push:
+    branches:
+      - main
+
+name: Deploy
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "14"
+      - run: npm install
+      - run: npm run build
+      - name: Add font links to output HTML
+        run: sed -e 's/<html lang="en-US"><head>/<html lang="ja"><head><link rel="preconnect" href="https:\/\/fonts.gstatic.com"><link href="https:\/\/fonts.googleapis.com\/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https:\/\/overpass-30e2.kxcdn.com\/overpass-mono.css">/' -i dist/index.html
+      - uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
